@@ -26,7 +26,7 @@ done
 regex="^(feat|fix)\((FKIS|COMMON)-[0-9]{4}\): .+"
 
 if [[ ! $commit_message =~ $regex ]]; then
-  echo " ⚠️ Некорректный текст коммита."
+  echo "🤖 Некорректный текст коммита."
   echo "Необходимый формат: feat(FKIS-0000): текст или fix(FKIS-0000): текст"
   exit 1
 elif [[ "$contains_prohibited_word" == true ]]; then
