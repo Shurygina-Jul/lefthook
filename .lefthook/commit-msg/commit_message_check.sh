@@ -1,18 +1,38 @@
 #!/bin/bash
 
-# Отладочное сообщение для проверки, что скрипт запускается
-#echo "Старт проверки текста коммита..."
+# Загружаем переменные из .env
+export $(grep -v '^#' .env | xargs)
 
-# Читаем сообщение коммита из файла (путь передан как $1)
+# Преобразуем список запрещенных слов в массив
+IFS=',' read -r -a prohibited_words <<< "$PROHIBITED_WORDS"
+
+# Прочитать сообщение коммита
 commit_message=$(cat "$1")
 
-# Проверяем формат сообщения: должно начинаться с 'feat:' или 'fix:' с последующим текстом
-if [[ ! $commit_message =~ ^(feat|fix)\ \([A-Z]+-[0-9]+\):\ .+ ]]; then
-  echo "Неверный формат сообщения коммита. Оно должно соответствовать шаблону 'feat (ABCD-1234): редизайн реестров" или "fix (ABCD1234): добавлена кнопка'."
+# Вывод отладочной информации
+echo "Commit message being checked: '$commit_message'"
+
+# Функция для проверки на наличие запрещенных слов
+contains_prohibited_word=false
+for word in "${prohibited_words[@]}"; do
+  if [[ "$commit_message" == *"$word"* ]]; then
+    contains_prohibited_word=true
+    break
+  fi
+done
+
+# Проверить правильность формата коммита
+# Упрощаем регулярное выражение
+regex="^(feat|fix)\((FKIS|COMMON)-[0-9]{4}\): .+"
+
+if [[ ! $commit_message =~ $regex ]]; then
+  echo "Commit message format is incorrect."
+  echo "Expected format: feat(FKIS-0000): Message or fix(FKIS-0000): Message"
+  exit 1
+elif [[ "$contains_prohibited_word" == true ]]; then
+  echo "Commit message contains prohibited words."
   exit 1
 else
-  echo "Формат сообщения коммита правильный."
+  echo "Commit message is valid."
+  exit 0
 fi
-
-# Отладочное сообщение для проверки, что скрипт завершился
-#echo "Проверка сообщения коммита завершена."
